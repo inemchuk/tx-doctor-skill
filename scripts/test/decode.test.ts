@@ -47,6 +47,19 @@ describe('decode', () => {
     expect(r.name).toBe('InsufficientFunds');
   });
 
+  it('token-2022 extension code (>19) is not mistaken for Anchor', () => {
+    const r = decode({ code: 25, program: 'token-2022' });
+    expect(r.name).toBe('Unknown');
+    expect(r.family).toBe('token-2022');
+    expect(r.summary).toMatch(/extension/i);
+  });
+
+  it('unknown spl-token code does not fall through to Anchor', () => {
+    const r = decode({ code: 200, program: 'spl-token' });
+    expect(r.name).toBe('Unknown');
+    expect(r.family).toBe('spl-token');
+  });
+
   it('unknown high code degrades gracefully', () => {
     const r = decode({ code: 999999 });
     expect(r.name).toBe('Unknown');

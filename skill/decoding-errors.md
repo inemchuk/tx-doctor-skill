@@ -80,9 +80,12 @@ Program log: AnchorError occurred. Error Code: ConstraintHasOne. Error Number: 2
 These are defined per program; they are **not** in any static map. Resolve:
 
 ```bash
+# from a local IDL or a URL:
 node dist/tx-doctor.js decode 6001 --idl ./target/idl/my_program.json
-# or fetch on-chain:
-anchor idl fetch <programId> -o idl.json && node dist/tx-doctor.js decode 6001 --idl idl.json
+node dist/tx-doctor.js decode 6001 --idl https://example.com/my_program.json
+
+# or fetch it on-chain (needs the anchor CLI installed):
+node dist/tx-doctor.js decode 6001 --fetch <programId> --cluster mainnet
 ```
 
 ## Non-code runtime symptoms

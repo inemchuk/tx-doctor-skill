@@ -9,10 +9,14 @@
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { parseArgs } from './lib/args.js';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { parseArgs, resolveRpcUrl } from './lib/args.js';
 import { toDecimal } from './lib/hex.js';
 import { decode } from './lib/decode.js';
 import { resolveFromIdl } from './lib/idl.js';
+
+const execFileAsync = promisify(execFile);
 
 const USAGE = `tx-doctor decode — decode a Solana program error
 
@@ -26,6 +30,7 @@ Usage:
 --program    system | spl-token | token-2022 | associated-token | anchor
 --logs       a transaction log dump to parse
 --idl        Anchor IDL JSON (file path or http(s) URL) for a custom (6000+) code
+--fetch      program id to fetch the IDL on-chain via the anchor CLI (needs anchor + --cluster/--rpc)
 --help       show this help`;
 
 type IdlShape = { errors?: { code: number; name: string; msg?: string }[] };
@@ -37,6 +42,18 @@ async function loadIdl(src: string): Promise<IdlShape> {
     return (await res.json()) as IdlShape;
   }
   return JSON.parse(readFileSync(src, 'utf8')) as IdlShape;
+}
+
+// Best-effort on-chain IDL fetch via the Anchor CLI (if installed).
+async function fetchIdlViaAnchor(programId: string, rpcUrl: string): Promise<IdlShape> {
+  const { stdout } = await execFileAsync('anchor', [
+    'idl',
+    'fetch',
+    programId,
+    '--provider.cluster',
+    rpcUrl,
+  ]);
+  return JSON.parse(stdout) as IdlShape;
 }
 
 async function readStdin(): Promise<string> {
@@ -79,9 +96,13 @@ export async function run(argv: string[]): Promise<void> {
   const program = typeof flags.program === 'string' ? flags.program : undefined;
   let result = decode({ code, program, logs });
 
-  if (result.needsIdl && typeof flags.idl === 'string' && result.code !== undefined) {
+  if (result.needsIdl && result.code !== undefined && (typeof flags.idl === 'string' || typeof flags.fetch === 'string')) {
+    const source = typeof flags.idl === 'string' ? flags.idl : `on-chain (${flags.fetch as string})`;
     try {
-      const idl = await loadIdl(flags.idl);
+      const idl =
+        typeof flags.idl === 'string'
+          ? await loadIdl(flags.idl)
+          : await fetchIdlViaAnchor(flags.fetch as string, resolveRpcUrl(flags));
       const hit = resolveFromIdl(idl.errors, result.code);
       if (hit) {
         result = {
@@ -89,13 +110,16 @@ export async function run(argv: string[]): Promise<void> {
           name: hit.name,
           summary: hit.msg ?? `Custom error ${hit.code} (${hit.name})`,
           needsIdl: false,
-          fixes: [`Resolved from IDL ${flags.idl}; review the logic raising ${hit.name}`],
+          fixes: [`Resolved from IDL ${source}; review the logic raising ${hit.name}`],
         };
       } else {
-        console.error(`Code ${result.code} not found in ${flags.idl}`);
+        console.error(`Code ${result.code} not found in IDL ${source}`);
       }
     } catch (err) {
-      console.error(`Could not read IDL: ${(err as Error).message}`);
+      console.error(`Could not load IDL from ${source}: ${(err as Error).message}`);
+      if (typeof flags.fetch === 'string') {
+        console.error('(on-chain fetch needs the `anchor` CLI installed)');
+      }
     }
   }
 

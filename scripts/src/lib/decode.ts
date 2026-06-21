@@ -58,6 +58,24 @@ export function decode(input: DecodeInput): DecodeResult {
   if (family) {
     const entry = lookupByFamily(family, code);
     if (entry) return fromEntry(entry, family, false);
+    // We know the program but the code isn't in its set. Don't fall through to
+    // Anchor framework ranges (this isn't an Anchor program) unless it's a
+    // user-defined (6000+) code.
+    if (family !== 'anchor' && code < 6000) {
+      const token2022Hint =
+        family === 'token-2022'
+          ? ' Token-2022 base codes match SPL Token; extension-specific errors are defined in the program source.'
+          : '';
+      return {
+        code,
+        name: 'Unknown',
+        summary: `Code ${code} (0x${code.toString(16)}) was not found in the ${family} error set.${token2022Hint} Check the program's source for its error definition.`,
+        causes: [],
+        fixes: [],
+        needsIdl: false,
+        family,
+      };
+    }
   }
 
   if (code < 6000) {

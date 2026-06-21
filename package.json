@@ -19,7 +19,8 @@
     "prepare": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "node dist/tx-doctor.js --help >/dev/null && node dist/tx-doctor.js decode 0x1 --program spl-token >/dev/null && node dist/tx-doctor.js decode 0x1771 >/dev/null && echo 'smoke ok'"
   },
   "keywords": [
     "solana",
