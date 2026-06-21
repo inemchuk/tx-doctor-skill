@@ -1,0 +1,42 @@
+{
+  "name": "tx-doctor-skill",
+  "version": "0.1.0",
+  "description": "Symptom-first Solana transaction-lifecycle skill: decode errors and land transactions reliably.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "tx-decode-error": "dist/decode-error.js",
+    "tx-simulate": "dist/simulate.js",
+    "tx-estimate-fee": "dist/estimate-fee.js",
+    "tx-inspect": "dist/inspect-tx.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "solana",
+    "transaction",
+    "debugging",
+    "priority-fees",
+    "compute-units",
+    "jito",
+    "claude-skill"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@solana-program/compute-budget": "^0.16.0",
+    "@solana-program/system": "^0.12.2",
+    "@solana-program/token": "^0.14.0",
+    "@solana/kit": "^6.10.0"
+  }
+}
