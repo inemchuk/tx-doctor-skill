@@ -30,6 +30,36 @@ into the block.
 Send bundles via the Jito Block Engine endpoints; put the tip transfer in the
 bundle (commonly the last tx) to one of the published tip accounts.
 
+### Sending a bundle (sketch)
+
+The Block Engine exposes a JSON-RPC `sendBundle` method that takes an array of
+base64-encoded signed transactions. The tip is a normal SOL transfer to a Jito
+tip account, included as one of the transactions (usually last).
+
+```ts
+// 1) Pick a tip account (fetch the current list from Jito's getTipAccounts).
+const TIP_ACCOUNT = address('<one of Jito's tip accounts>');
+
+// 2) Build your action tx(s) AND a tip transfer tx (transfer SOL -> TIP_ACCOUNT).
+//    Sign each; serialize to base64 wire format.
+const encoded = signedTxs.map((tx) => getBase64EncodedWireTransaction(tx));
+
+// 3) Submit the bundle to a Block Engine endpoint.
+const res = await fetch('https://mainnet.block-engine.jito.wtf/api/v1/bundles', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'sendBundle', params: [encoded] }),
+});
+const { result: bundleId } = await res.json();
+
+// 4) Poll bundle status (getBundleStatuses) or watch your tx signatures.
+```
+
+Notes: bundles are all-or-nothing — if any tx fails, none land (and the tip
+isn't paid). Size the tip competitively (tip-per-CU) and still set a priority
+fee on the action tx(s). Always fetch the **current** tip accounts and endpoints
+from Jito rather than hard-coding them.
+
 ## Staked connections
 
 Sending through a **staked** RPC connection (the sender has stake weight) gives

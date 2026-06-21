@@ -23,10 +23,19 @@ Usage:
 <code>            decimal (6001) or hex (0x1771)
 --program        system | spl-token | token-2022 | associated-token | anchor
 --logs           a transaction log dump to parse
---idl            local Anchor IDL JSON to resolve a custom (6000+) code
+--idl            Anchor IDL JSON (file path or http(s) URL) to resolve a custom (6000+) code
 --help           show this help`;
 
-function main(): void {
+async function loadIdl(src: string): Promise<{ errors?: { code: number; name: string; msg?: string }[] }> {
+  if (/^https?:\/\//.test(src)) {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${src}`);
+    return (await res.json()) as { errors?: { code: number; name: string; msg?: string }[] };
+  }
+  return JSON.parse(readFileSync(src, 'utf8')) as { errors?: { code: number; name: string; msg?: string }[] };
+}
+
+async function main(): Promise<void> {
   const { positional, flags } = parseArgs(process.argv.slice(2));
 
   if (flags.help) {
@@ -55,7 +64,7 @@ function main(): void {
 
   if (result.needsIdl && typeof flags.idl === 'string' && result.code !== undefined) {
     try {
-      const idl = JSON.parse(readFileSync(flags.idl, 'utf8')) as { errors?: { code: number; name: string; msg?: string }[] };
+      const idl = await loadIdl(flags.idl);
       const hit = resolveFromIdl(idl.errors, result.code);
       if (hit) {
         result = {
@@ -93,4 +102,7 @@ function printResult(r: ReturnType<typeof decode>): void {
   console.log('');
 }
 
-main();
+main().catch((err) => {
+  console.error((err as Error).message);
+  process.exit(1);
+});

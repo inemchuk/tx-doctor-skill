@@ -81,12 +81,20 @@ const ASSOCIATED_TOKEN: Record<number, ErrorEntry> = {
 // decoding-errors.md for the non-code symptom table.
 const COMPUTE_BUDGET: Record<number, ErrorEntry> = {};
 
-// --- Anchor framework errors (high-frequency subset) ---
+// --- Anchor framework errors ---
+// Numbers are stable across Anchor versions. Source: anchor lang/src/error.rs.
 const ANCHOR_LANG: Record<number, ErrorEntry> = {
+  // Instructions (100s)
   100: e(100, 'InstructionMissing', '8 byte instruction identifier not provided'),
   101: e(101, 'InstructionFallbackNotFound', 'Fallback functions are not supported'),
-  102: e(102, 'InstructionDidNotDeserialize', 'The program could not deserialize the given instruction'),
+  102: e(102, 'InstructionDidNotDeserialize', 'The program could not deserialize the given instruction',
+    ['Args/account layout sent by the client does not match the program'],
+    ['Regenerate the client from the current IDL; check arg order and types']),
   103: e(103, 'InstructionDidNotSerialize', 'The program could not serialize the given instruction'),
+  // IDL (1000s)
+  1000: e(1000, 'IdlInstructionStub', 'The program was compiled without idl instructions'),
+  1001: e(1001, 'IdlInstructionInvalidProgram', 'Invalid program given to the IDL instruction'),
+  // Constraints (2000s)
   2000: e(2000, 'ConstraintMut', 'A mut constraint was violated',
     ['Account expected to be mutable was passed as read-only'],
     ['Mark the account `mut` in the client and ensure it is writable']),
@@ -98,20 +106,61 @@ const ANCHOR_LANG: Record<number, ErrorEntry> = {
     ['Add the missing signer to the transaction']),
   2003: e(2003, 'ConstraintRaw', 'A raw constraint was violated'),
   2004: e(2004, 'ConstraintOwner', 'An owner constraint was violated'),
+  2005: e(2005, 'ConstraintRentExempt', 'A rent exemption constraint was violated'),
   2006: e(2006, 'ConstraintSeeds', 'A seeds constraint was violated',
     ['PDA seeds/bump passed do not derive the provided account'],
     ['Recompute the PDA with the exact seeds and canonical bump']),
-  2012: e(2012, 'ConstraintAddress', 'An address constraint was violated'),
-  2015: e(2015, 'ConstraintTokenMint', 'A token mint constraint was violated'),
+  2007: e(2007, 'ConstraintExecutable', 'An executable constraint was violated'),
+  2009: e(2009, 'ConstraintAssociated', 'An associated constraint was violated'),
+  2010: e(2010, 'ConstraintAssociatedInit', 'An associated init constraint was violated'),
+  2011: e(2011, 'ConstraintClose', 'A close constraint was violated'),
+  2012: e(2012, 'ConstraintAddress', 'An address constraint was violated',
+    ['Account address does not match the `address = …` constraint'],
+    ['Pass the exact expected address']),
+  2013: e(2013, 'ConstraintZero', 'A zero constraint was violated'),
+  2014: e(2014, 'ConstraintTokenMint', 'A token mint constraint was violated'),
+  2015: e(2015, 'ConstraintTokenOwner', 'A token owner constraint was violated'),
+  2016: e(2016, 'ConstraintMintMintAuthority', 'A mint mint authority constraint was violated'),
+  2017: e(2017, 'ConstraintMintFreezeAuthority', 'A mint freeze authority constraint was violated'),
+  2018: e(2018, 'ConstraintMintDecimals', 'A mint decimals constraint was violated'),
+  2019: e(2019, 'ConstraintSpace', 'A space constraint was violated'),
+  // Require macros (2500s)
+  2500: e(2500, 'RequireViolated', 'A require expression was violated'),
+  2501: e(2501, 'RequireEqViolated', 'A require_eq expression was violated'),
+  2502: e(2502, 'RequireKeysEqViolated', 'A require_keys_eq expression was violated'),
+  2503: e(2503, 'RequireNeqViolated', 'A require_neq expression was violated'),
+  2504: e(2504, 'RequireKeysNeqViolated', 'A require_keys_neq expression was violated'),
+  2505: e(2505, 'RequireGtViolated', 'A require_gt expression was violated'),
+  2506: e(2506, 'RequireGteViolated', 'A require_gte expression was violated'),
+  // Accounts (3000s)
+  3000: e(3000, 'AccountDiscriminatorAlreadySet', 'The account discriminator was already set on this account'),
+  3001: e(3001, 'AccountDiscriminatorNotFound', 'No discriminator was found on the account'),
   3002: e(3002, 'AccountDiscriminatorMismatch', 'The account discriminator did not match what was expected',
     ['Account is of a different type than expected'],
     ['Pass the correct account; check you are not mixing up account types']),
+  3003: e(3003, 'AccountDidNotDeserialize', 'Failed to deserialize the account'),
+  3004: e(3004, 'AccountDidNotSerialize', 'Failed to serialize the account'),
+  3005: e(3005, 'AccountNotEnoughKeys', 'Not enough account keys given to the instruction',
+    ['Fewer accounts passed than the instruction expects'],
+    ['Pass all required accounts in the right order (regenerate client from IDL)']),
+  3006: e(3006, 'AccountNotMutable', 'The given account is not mutable'),
   3007: e(3007, 'AccountOwnedByWrongProgram', 'The given account is owned by a different program than expected',
     ['Account owner is not the expected program'],
     ['Pass an account created/owned by the expected program']),
+  3008: e(3008, 'InvalidProgramId', 'Program ID was not as expected'),
+  3009: e(3009, 'InvalidProgramExecutable', 'Program account is not executable'),
+  3010: e(3010, 'AccountNotSigner', 'The given account did not sign'),
+  3011: e(3011, 'AccountNotSystemOwned', 'The given account is not owned by the system program'),
   3012: e(3012, 'AccountNotInitialized', 'The program expected this account to be already initialized',
     ['Account has not been created/initialised yet'],
-    ['Initialise the account first, or use init/init_if_needed']),
+    ['Initialise the account first, or use init / init_if_needed']),
+  3013: e(3013, 'AccountNotProgramData', 'The given account is not the associated program data account'),
+  3014: e(3014, 'AccountNotAssociatedTokenAccount', 'The given account is not the expected associated token account'),
+  3015: e(3015, 'AccountSysvarMismatch', 'The given public key does not match the required sysvar'),
+  // Misc (4100s)
+  4100: e(4100, 'DeclaredProgramIdMismatch', 'The declared program id does not match the actual program id',
+    ['`declare_id!` does not match the deployed program id'],
+    ['Update declare_id! to the deployed program id and rebuild/redeploy']),
 };
 
 export const lookupSplToken = (code: number): ErrorEntry | undefined => SPL_TOKEN[code];

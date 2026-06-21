@@ -3,6 +3,7 @@ import {
   lookupSplToken,
   lookupSystem,
   lookupAssociatedToken,
+  lookupAnchorLang,
   classifyAnchor,
   familyFromProgramId,
 } from '../src/lib/errorMaps.js';
@@ -23,6 +24,14 @@ describe('errorMaps', () => {
   it('Associated Token 0 = InvalidOwner', () =>
     expect(lookupAssociatedToken(0)?.name).toBe('InvalidOwner'));
 
+  it('Anchor 2006 = ConstraintSeeds', () =>
+    expect(lookupAnchorLang(2006)?.name).toBe('ConstraintSeeds'));
+  it('Anchor 3005 = AccountNotEnoughKeys', () =>
+    expect(lookupAnchorLang(3005)?.name).toBe('AccountNotEnoughKeys'));
+  it('Anchor 2500 = RequireViolated', () =>
+    expect(lookupAnchorLang(2500)?.name).toBe('RequireViolated'));
+  it('Anchor 4100 = DeclaredProgramIdMismatch', () =>
+    expect(lookupAnchorLang(4100)?.name).toBe('DeclaredProgramIdMismatch'));
   it('Anchor 6000 classified as custom', () => expect(classifyAnchor(6000)).toBe('custom'));
   it('Anchor 2000 classified as constraint', () => expect(classifyAnchor(2000)).toBe('constraint'));
   it('Anchor 3012 classified as account', () => expect(classifyAnchor(3012)).toBe('account'));

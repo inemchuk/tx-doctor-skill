@@ -8,6 +8,7 @@
 import { createSolanaRpc, signature } from '@solana/kit';
 import { parseArgs, resolveRpcUrl } from './lib/args.js';
 import { decode } from './lib/decode.js';
+import { familyFromProgramId } from './lib/errorMaps.js';
 
 const USAGE = `tx-inspect — decode a confirmed transaction by signature
 
@@ -51,10 +52,22 @@ async function main(): Promise<void> {
       }
     }
 
+    // List the instructions and which program each one calls.
+    const message = tx.transaction.message;
+    if ('instructions' in message && 'accountKeys' in message) {
+      const keys = message.accountKeys;
+      console.log('\n  Instructions:');
+      message.instructions.forEach((ix, i) => {
+        const pid = String(keys[ix.programIdIndex] ?? `#${ix.programIdIndex}`);
+        const fam = familyFromProgramId(pid);
+        console.log(`    ${i}: ${pid}${fam ? ` (${fam})` : ''}`);
+      });
+    }
+
     if (failed) {
       const joined = (meta?.logMessages ?? []).join('\n');
       const decoded = decode({ logs: joined });
-      console.log(`  Error:    ${decoded.name} — ${decoded.summary}`);
+      console.log(`\n  Error:    ${decoded.name} — ${decoded.summary}`);
       for (const f of decoded.fixes) console.log(`    fix: ${f}`);
     }
 

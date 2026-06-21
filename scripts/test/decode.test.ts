@@ -24,6 +24,17 @@ describe('decode', () => {
     expect(r.name).toBe('AccountNotInitialized');
   });
 
+  it('decodes ConstraintSeeds with fix guidance', () => {
+    const r = decode({ code: 2006 });
+    expect(r.name).toBe('ConstraintSeeds');
+    expect(r.fixes.length).toBeGreaterThan(0);
+  });
+
+  it('decodes a generic Anchor constraint code not in the map', () => {
+    const r = decode({ code: 2099 });
+    expect(r.name).toBe('Anchor constraint error');
+  });
+
   it('decodes from a log dump', () => {
     const r = decode({ logs: 'Program X failed: custom program error: 0x1' });
     expect(r.code).toBe(1);
