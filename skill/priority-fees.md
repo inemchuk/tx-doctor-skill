@@ -51,7 +51,7 @@ Always prefer a live estimate over a hard-coded number.
 ## Tool
 
 ```bash
-node dist/estimate-fee.js --accounts <writable1,writable2> --cu 200000
+node dist/tx-doctor.js fee --accounts <writable1,writable2> --cu 200000
 # → p50/p75/p90, recommended CU price, resulting priority fee in lamports
 ```
 

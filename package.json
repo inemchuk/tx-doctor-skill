@@ -8,6 +8,7 @@
     "node": ">=20"
   },
   "bin": {
+    "tx-doctor": "dist/tx-doctor.js",
     "tx-decode-error": "dist/decode-error.js",
     "tx-simulate": "dist/simulate.js",
     "tx-estimate-fee": "dist/estimate-fee.js",

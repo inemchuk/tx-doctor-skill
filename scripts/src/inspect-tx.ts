@@ -1,28 +1,30 @@
 #!/usr/bin/env node
-// tx-inspect — fetch a confirmed transaction by signature and explain it:
-// status, fee, compute units, instruction programs, and any decoded error.
+// Fetch a confirmed transaction by signature and explain it: status, fee,
+// compute units, instruction programs, and any decoded error.
 //
-// Usage:
-//   tx-inspect <signature> [--rpc <url>]
+//   tx-doctor inspect <signature> [--cluster mainnet]
 
+import { pathToFileURL } from 'node:url';
 import { createSolanaRpc, signature } from '@solana/kit';
 import { parseArgs, resolveRpcUrl } from './lib/args.js';
 import { decode } from './lib/decode.js';
 import { familyFromProgramId } from './lib/errorMaps.js';
 
-const USAGE = `tx-inspect — decode a confirmed transaction by signature
+const USAGE = `tx-doctor inspect — decode a confirmed transaction by signature
 
 Usage:
-  tx-inspect <signature> [--rpc <url>]
+  tx-doctor inspect <signature> [--cluster <name> | --rpc <url>]
 
---rpc    RPC endpoint (or RPC_URL env; default devnet)
---help   show this help`;
+--cluster   mainnet | devnet | testnet | localnet
+--rpc       explicit RPC endpoint (or RPC_URL env)
+--help      show this help`;
 
-async function main(): Promise<void> {
-  const { positional, flags } = parseArgs(process.argv.slice(2));
+export async function run(argv: string[]): Promise<void> {
+  const { positional, flags } = parseArgs(argv);
   if (flags.help || positional.length === 0) {
     console.log(USAGE);
-    process.exit(flags.help ? 0 : 1);
+    if (!flags.help) process.exitCode = 1;
+    return;
   }
 
   const rpc = createSolanaRpc(resolveRpcUrl(flags));
@@ -52,7 +54,6 @@ async function main(): Promise<void> {
       }
     }
 
-    // List the instructions and which program each one calls.
     const message = tx.transaction.message;
     if ('instructions' in message && 'accountKeys' in message) {
       const keys = message.accountKeys;
@@ -65,8 +66,7 @@ async function main(): Promise<void> {
     }
 
     if (failed) {
-      const joined = (meta?.logMessages ?? []).join('\n');
-      const decoded = decode({ logs: joined });
+      const decoded = decode({ logs: (meta?.logMessages ?? []).join('\n') });
       console.log(`\n  Error:    ${decoded.name} — ${decoded.summary}`);
       for (const f of decoded.fixes) console.log(`    fix: ${f}`);
     }
@@ -82,4 +82,9 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  run(process.argv.slice(2)).catch((err) => {
+    console.error((err as Error).message);
+    process.exit(1);
+  });
+}

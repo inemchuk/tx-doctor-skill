@@ -85,7 +85,7 @@ if [ "$AGENTS" -eq 1 ]; then
 
 Solana transaction-lifecycle skill. Entry point: skill/SKILL.md (symptom-first
 routing). CLIs in scripts/ decode errors, simulate, estimate fees, inspect txs.
-Build with `npm install && npm run build`, then `node dist/<tool>.js`.
+Build with `npm install` (also builds), then `node dist/tx-doctor.js <command>`.
 AGENTS_MD
   echo "${C_GREEN}✓${C_RESET} Wrote AGENTS.md."
 fi
@@ -94,12 +94,12 @@ cat <<EOF
 
 ${C_GREEN}Tx Doctor installed.${C_RESET}
 
-Build the CLIs:
-  cd "${DEST}" && npm install && npm run build
+Build the CLI:
+  cd "${DEST}" && npm install   # also builds
 
 Try it:
-  node dist/decode-error.js 0x1771
-  node dist/estimate-fee.js
+  node dist/tx-doctor.js decode 0x1771
+  node dist/tx-doctor.js fee --cluster devnet
 
 Use in Claude Code:
   - Skill hub:  skill/SKILL.md  (symptom → module routing)

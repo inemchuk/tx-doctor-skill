@@ -1,26 +1,26 @@
 #!/usr/bin/env node
-// tx-estimate-fee — recommend a priority-fee CU price from recent on-chain
-// prioritization fees, with p50/p75/p90 percentiles.
+// Recommend a priority-fee CU price from recent on-chain prioritization fees.
 //
-// Usage:
-//   tx-estimate-fee [--accounts <addr1,addr2>] [--cu <limit>] [--rpc <url>]
+//   tx-doctor fee [--accounts <a,b>] [--cu <limit>] [--cluster mainnet]
 
+import { pathToFileURL } from 'node:url';
 import { address, createSolanaRpc } from '@solana/kit';
 import { parseArgs, resolveRpcUrl } from './lib/args.js';
 import { percentile, priorityFeeLamports, recommendMicroLamports } from './lib/fees.js';
 
-const USAGE = `tx-estimate-fee — recommend a priority-fee CU price
+const USAGE = `tx-doctor fee — recommend a priority-fee CU price
 
 Usage:
-  tx-estimate-fee [--accounts <a,b>] [--cu <limit>] [--rpc <url>]
+  tx-doctor fee [--accounts <a,b>] [--cu <limit>] [--cluster <name> | --rpc <url>]
 
---accounts  comma-separated addresses your tx writes to (improves the estimate)
---cu        CU limit to price the priority fee against (default 200000)
---rpc       RPC endpoint (or RPC_URL env; default devnet)
---help      show this help`;
+--accounts   comma-separated writable addresses your tx touches
+--cu         CU limit to price the priority fee against (default 200000)
+--cluster    mainnet | devnet | testnet | localnet
+--rpc        explicit RPC endpoint (or RPC_URL env)
+--help       show this help`;
 
-async function main(): Promise<void> {
-  const { flags } = parseArgs(process.argv.slice(2));
+export async function run(argv: string[]): Promise<void> {
+  const { flags } = parseArgs(argv);
   if (flags.help) {
     console.log(USAGE);
     return;
@@ -28,7 +28,6 @@ async function main(): Promise<void> {
 
   const cuLimit = typeof flags.cu === 'string' ? Number(flags.cu) : 200_000;
   const rpc = createSolanaRpc(resolveRpcUrl(flags));
-
   const accounts =
     typeof flags.accounts === 'string'
       ? flags.accounts.split(',').map((a) => address(a.trim()))
@@ -38,20 +37,21 @@ async function main(): Promise<void> {
     const res = await rpc.getRecentPrioritizationFees(accounts).send();
     const samples = res.map((r) => Number(r.prioritizationFee));
 
-    const p50 = percentile(samples, 50);
-    const p75 = percentile(samples, 75);
-    const p90 = percentile(samples, 90);
     const recommended = recommendMicroLamports(samples, 75);
-
-    console.log(`\n  Samples:        ${samples.length} recent slots`);
-    console.log(`  p50 / p75 / p90: ${p50} / ${p75} / ${p90} micro-lamports per CU`);
-    console.log(`  Recommended:    ${recommended} micro-lamports per CU (p75)`);
-    console.log(`  Priority fee:   ${priorityFeeLamports(recommended, cuLimit)} lamports at CU limit ${cuLimit}`);
-    console.log('\n  Tip: raise the CU *price* before the CU *limit*. Add compute-budget instructions first.\n');
+    console.log(`\n  Samples:         ${samples.length} recent slots`);
+    console.log(`  p50 / p75 / p90: ${percentile(samples, 50)} / ${percentile(samples, 75)} / ${percentile(samples, 90)} micro-lamports/CU`);
+    console.log(`  Recommended:     ${recommended} micro-lamports/CU (p75)`);
+    console.log(`  Priority fee:    ${priorityFeeLamports(recommended, cuLimit)} lamports at CU limit ${cuLimit}`);
+    console.log('\n  Tip: raise the CU price before the CU limit; put compute-budget instructions first.\n');
   } catch (e) {
     console.error(`Fee request failed: ${(e as Error).message}`);
     process.exit(1);
   }
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  run(process.argv.slice(2)).catch((err) => {
+    console.error((err as Error).message);
+    process.exit(1);
+  });
+}

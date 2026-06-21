@@ -6,7 +6,7 @@ argument-hint: [--tx <base64>]
 Run preflight for: `$ARGUMENTS`
 
 1. Read `skill/simulation-preflight.md`.
-2. If a base64 tx is given, run `node dist/simulate.js --tx <base64>` and report
+2. If a base64 tx is given, run `node dist/tx-doctor.js simulate --tx <base64>` and report
    status, CU used, recommended CU limit, and any decoded error.
 3. Walk the dry-run checklist:
    - simulated successfully (`err: null`)

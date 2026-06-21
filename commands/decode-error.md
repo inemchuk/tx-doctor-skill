@@ -5,7 +5,7 @@ argument-hint: <error code | "log dump"> [--program <family>] [--idl <path>]
 
 Decode the Solana error: `$ARGUMENTS`
 
-1. Run `node dist/decode-error.js $ARGUMENTS` (build first if `dist/` is missing:
+1. Run `node dist/tx-doctor.js decode $ARGUMENTS` (build first if `dist/` is missing:
    `npm install && npm run build`).
 2. If the result needs an IDL (custom 6000+ code) and the user has one, re-run
    with `--idl <path-to-idl.json>`.

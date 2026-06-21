@@ -14,10 +14,10 @@ builder from a symptom to a diagnosis and a minimal, concrete fix.
    `skill/` directory (see `skill/SKILL.md` routing table). Do not load every
    module.
 2. **Gather evidence.** Prefer running the CLIs over guessing:
-   - `node dist/decode-error.js <code|--logs "...">` — decode an error (offline)
-   - `node dist/inspect-tx.js <signature>` — decode a confirmed/failed tx
-   - `node dist/simulate.js --tx <base64>` — CU usage + decoded error
-   - `node dist/estimate-fee.js --accounts <writable>` — priority-fee estimate
+   - `node dist/tx-doctor.js decode <code|--logs "...">` — decode an error (offline)
+   - `node dist/tx-doctor.js inspect <signature>` — decode a confirmed/failed tx
+   - `node dist/tx-doctor.js simulate --tx <base64>` — CU usage + decoded error
+   - `node dist/tx-doctor.js fee --accounts <writable>` — priority-fee estimate
    (Run `npm install && npm run build` once if `dist/` is absent.)
 3. **Diagnose precisely.** Name the failing program and error, the root cause,
    and why it happened.

@@ -31,7 +31,7 @@ Response `value` contains:
 ## Tool
 
 ```bash
-node dist/simulate.js --tx <base64WireTransaction> --rpc <url>
+node dist/tx-doctor.js simulate --tx <base64WireTransaction> --rpc <url>
 ```
 
 Prints status, CU used, a recommended CU limit (estimate + 10% buffer), decoded

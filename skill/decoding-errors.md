@@ -12,7 +12,7 @@ Custom errors are reported in hex. Convert first.
 0x1770 = 6000  0x1771 = 6001  (Anchor user errors start at 6000 / 0x1770)
 ```
 
-Run `node dist/decode-error.js 0x1771` to do this and look up the meaning.
+Run `node dist/tx-doctor.js decode 0x1771` to do this and look up the meaning.
 
 ## Step 1 — which program raised it?
 
@@ -80,9 +80,9 @@ Program log: AnchorError occurred. Error Code: ConstraintHasOne. Error Number: 2
 These are defined per program; they are **not** in any static map. Resolve:
 
 ```bash
-node dist/decode-error.js 6001 --idl ./target/idl/my_program.json
+node dist/tx-doctor.js decode 6001 --idl ./target/idl/my_program.json
 # or fetch on-chain:
-anchor idl fetch <programId> -o idl.json && node dist/decode-error.js 6001 --idl idl.json
+anchor idl fetch <programId> -o idl.json && node dist/tx-doctor.js decode 6001 --idl idl.json
 ```
 
 ## Non-code runtime symptoms
@@ -102,5 +102,5 @@ These do not come as `custom program error` codes:
 
 ## Tools
 
-- `node dist/decode-error.js <code>` — offline lookup
-- `node dist/inspect-tx.js <signature>` — decode a failed tx end-to-end
+- `node dist/tx-doctor.js decode <code>` — offline lookup
+- `node dist/tx-doctor.js inspect <signature>` — decode a failed tx end-to-end

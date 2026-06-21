@@ -45,17 +45,18 @@ program's IDL (`--idl`) or say it's program-specific.
 
 ## Tools (`scripts/`)
 
-TypeScript on `@solana/kit`. Build once (`npm install && npm run build`), then run:
+TypeScript on `@solana/kit`. Build once (`npm install`, which also builds), then
+run the single `tx-doctor` command:
 
 | Command | Purpose |
 |---|---|
-| `node dist/decode-error.js <code\|--logs\|--idl>` | decode an error code / log dump (offline) |
-| `node dist/simulate.js --tx <base64>` | simulate → CU used, recommended limit, logs, decoded error |
-| `node dist/estimate-fee.js [--accounts a,b] [--cu N]` | priority-fee percentiles + recommendation |
-| `node dist/inspect-tx.js <signature>` | decode a confirmed/failed transaction by signature |
+| `node dist/tx-doctor.js decode <code\|--logs\|--idl>` | decode an error code / log dump (offline; reads stdin too) |
+| `node dist/tx-doctor.js simulate --tx <base64>` | simulate → CU used, recommended limit, logs, decoded error |
+| `node dist/tx-doctor.js fee [--accounts a,b] [--cu N]` | priority-fee percentiles + recommendation |
+| `node dist/tx-doctor.js inspect <signature>` | decode a confirmed/failed transaction by signature |
 
-After `npm link` the same tools are available as `tx-decode-error`, `tx-simulate`,
-`tx-estimate-fee`, `tx-inspect`.
+Network commands take `--cluster mainnet|devnet|testnet|localnet` (or `--rpc <url>`).
+After `npm link` it's just `tx-doctor <command>`.
 
 ## Agent & commands
 

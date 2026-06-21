@@ -67,7 +67,7 @@ cheap builtins and the runtime expects them up front.
 ## Tool
 
 ```bash
-node dist/simulate.js --tx <base64>   # prints "Set CU limit to: <estimate+buffer>"
+node dist/tx-doctor.js simulate --tx <base64>   # prints "Set CU limit to: <estimate+buffer>"
 ```
 
 ## Sources
